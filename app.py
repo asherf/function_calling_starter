@@ -1,4 +1,5 @@
 import json
+import re
 
 import chainlit as cl
 import litellm
@@ -28,10 +29,21 @@ FIREWORKS_MODEL = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-inst
 CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
 
 
+def extract_tag_content(text: str, tag_name: str) -> str | None:
+    pattern = f"<{tag_name}>(.*?)</{tag_name}>"
+    match = re.search(pattern, text, re.DOTALL)
+    return match.group(1) if match else None
+
+
+def extract_json_tag_content(text: str, tag_name: str) -> dict | list | None:
+    content = extract_tag_content(text, tag_name)
+    return json.loads(content) if content else None
+
+
 @traceable
 @cl.on_chat_start
 def on_chat_start():
-    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V4}]
+    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V5}]
     cl.user_session.set("message_history", message_history)
 
 
@@ -64,15 +76,6 @@ async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
     return response_message.content
 
 
-async def llm_call_json(role: str, message_content: str) -> dict | list:
-    response_content = await llm_call(role, message_content, temperature=0)
-    try:
-        return json.loads(response_content)
-    except json.JSONDecodeError:
-        print("not a JSON response")
-        return {"content": response_content}
-
-
 def call_api(fc: dict) -> dict:
     function_name = fc.get("name")
     print(f"calling: {function_name}")
@@ -87,9 +90,8 @@ def call_api(fc: dict) -> dict:
 @cl.on_message
 @traceable
 async def on_message(message: cl.Message):
-    response_json = await llm_call_json("user", message.content)
-    print(f"JSON: '{response_json}'")
-    fc = response_json.get("function_call")
+    response_content = await llm_call("user", message.content)
+    fc = extract_json_tag_content(response_content, "function_call")
     if fc:
         api_response = call_api(fc)
         print(f"API {fc} - {api_response[:50]}... ({len(api_response)})")

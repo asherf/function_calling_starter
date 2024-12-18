@@ -5,7 +5,6 @@ from typing import Any, Callable, Dict
 import requests
 from serpapi.google_search import GoogleSearch
 
-
 # Global cache dictionary
 # Structure: {
 #   'function_name:args': response_data
