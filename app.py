@@ -54,11 +54,11 @@ def extract_tag_content(text: str, tag_name: str) -> str | None:
 @traceable
 @cl.on_chat_start
 def on_chat_start():
-    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT}]
+    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V3}]
     cl.user_session.set("message_history", message_history)
 
 
-async def llm_call(role, message_content, message_history):
+async def llm_call(role: str, message_content: str, message_history: list) -> str:
     message_history.append({"role": role, "content": message_content})
     response_message = cl.Message(content="")
     await response_message.send()
@@ -76,13 +76,20 @@ async def llm_call(role, message_content, message_history):
             await response_message.stream_token(token)
     await response_message.update()
     message_history.append({"role": "assistant", "content": response_message.content})
+    return response_message.content
 
 
 @cl.on_message
 @traceable
 async def on_message(message: cl.Message):
     message_history = cl.user_session.get("message_history", [])
-    await llm_call("user", message.content, message_history)
+    response_content = await llm_call("user", message.content, message_history)
+    try:
+        json.loads(response_content)
+    except json.JSONDecodeError as err:
+        print(f"Failing response: {response_content} - {err}")
+    else:
+        print("JSON parsed successfully")
     cl.user_session.set("message_history", message_history)
 
 
