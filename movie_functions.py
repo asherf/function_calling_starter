@@ -6,10 +6,6 @@ import requests
 from serpapi.google_search import GoogleSearch
 
 
-class APIError(Exception):
-    pass
-
-
 # Global cache dictionary
 # Structure: {
 #   'function_name:args': response_data
@@ -52,7 +48,7 @@ def memoize_api_call():
 def get_now_playing_movies():
     try:
         return _get_now_playing_movies()
-    except APIError as e:
+    except IOError as e:
         return str(e)
 
 
@@ -61,10 +57,7 @@ def _get_now_playing_movies():
     url = "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1"
     headers = {"Authorization": f"Bearer {os.getenv('TMDB_API_ACCESS_TOKEN')}"}
     response = requests.get(url, headers=headers)
-
-    if not response.ok:
-        raise APIError(f"Failed to fetch now playing movies: {response.text}")
-
+    response.raise_for_status()
     data = response.json()
 
     movies = data.get("results", [])
@@ -88,8 +81,15 @@ def _get_now_playing_movies():
     return formatted_movies
 
 
-@memoize_api_call()
 def get_showtimes(title, location):
+    try:
+        return _get_showtimes(title, location)
+    except Exception as e:
+        return str(e)
+
+
+@memoize_api_call()
+def _get_showtimes(title, location):
     params = {
         "api_key": os.getenv("SERP_API_KEY"),
         "engine": "google",
@@ -130,14 +130,22 @@ def buy_ticket(theater, movie, showtime):
     return f"Ticket purchased for {movie} at {theater} for {showtime}."
 
 
-@memoize_api_call()
 def get_reviews(movie_id):
+    try:
+        return _get_reviews(movie_id)
+    except IOError as e:
+        return str(e)
+
+
+@memoize_api_call()
+def _get_reviews(movie_id):
     url = f"https://api.themoviedb.org/3/movie/{movie_id}/reviews?language=en-US&page=1"
     headers = {
         "accept": "application/json",
         "Authorization": f"Bearer {os.getenv('TMDB_API_ACCESS_TOKEN')}",
     }
     response = requests.get(url, headers=headers)
+    response.raise_for_status()
     reviews_data = response.json()
 
     if "results" not in reviews_data or not reviews_data["results"]:
