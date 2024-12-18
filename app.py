@@ -28,29 +28,6 @@ FIREWORKS_MODEL = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-inst
 CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
 
 
-def extract_tag_content(text: str, tag_name: str) -> str | None:
-    """
-    Extract content between XML-style tags.
-
-    Args:
-        text: The text containing the tags
-        tag_name: Name of the tag to find
-
-    Returns:
-        String content between tags if found, None if not found
-
-    Example:
-        >>> text = "before <foo>content</foo> after"
-        >>> extract_tag_content(text, "foo")
-        'content'
-    """
-    import re
-
-    pattern = f"<{tag_name}>(.*?)</{tag_name}>"
-    match = re.search(pattern, text, re.DOTALL)
-    return match.group(1) if match else None
-
-
 @traceable
 @cl.on_chat_start
 def on_chat_start():
@@ -79,17 +56,20 @@ async def llm_call(role: str, message_content: str, message_history: list) -> st
     return response_message.content
 
 
+async def llm_call_json(
+    role: str, message_content: str, message_history: list
+) -> dict | list:
+    response_content = await llm_call(role, message_content, message_history)
+    # for now, it is fine to crash if we don't get valid JSON
+    return json.loads(response_content)
+
+
 @cl.on_message
 @traceable
 async def on_message(message: cl.Message):
     message_history = cl.user_session.get("message_history", [])
-    response_content = await llm_call("user", message.content, message_history)
-    try:
-        json.loads(response_content)
-    except json.JSONDecodeError as err:
-        print(f"Failing response: {response_content} - {err}")
-    else:
-        print("JSON parsed successfully")
+    response_json = await llm_call_json("user", message.content, message_history)
+    print(f"JSON: '{response_json}'")
     cl.user_session.set("message_history", message_history)
 
 
