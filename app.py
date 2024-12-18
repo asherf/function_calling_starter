@@ -37,7 +37,7 @@ def on_chat_start():
 
 async def llm_call(role: str, message_content: str, message_history: list) -> str:
     message_history.append({"role": role, "content": message_content})
-    print(f"LLM call: {role} - {message_content[:30]}.....")
+    print(f"LLM call: {role} - {message_content[:30]}... ({len(message_content)})")
     response_message = cl.Message(content="")
     await response_message.send()
 
@@ -53,7 +53,7 @@ async def llm_call(role: str, message_content: str, message_history: list) -> st
         if token := part.choices[0].delta.content or "":
             await response_message.stream_token(token)
     await response_message.update()
-    print(f"LLM response: {response_message.content[:30]}.....")
+    print(f"LLM response: {response_message.content[:30]}.... ({len(response_message.content)})")
     message_history.append({"role": "assistant", "content": response_message.content})
     return response_message.content
 
