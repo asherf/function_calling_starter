@@ -17,15 +17,15 @@ import prompts
 # Choose one of these model configurations by uncommenting it:
 
 # OpenAI GPT-4
-# model = "openai/gpt-4o"
+OPEN_AI_MODEL = "openai/gpt-4o"
 
 # Anthropic Claude
-model = "claude-3-5-sonnet-20241022"
+CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 
 # Fireworks Qwen
-# model = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct"
+FIREWORKS_MODEL = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct"
 
-gen_kwargs = {"temperature": 0.2, "max_tokens": 1000}
+CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
 
 
 def extract_tag_content(text: str, tag_name: str) -> str | None:
@@ -64,7 +64,11 @@ async def llm_call(role, message_content, message_history):
     await response_message.send()
 
     response = litellm.completion(
-        model=model, messages=message_history, stream=True, **gen_kwargs
+        model=CURRENT_MODEL,
+        messages=message_history,
+        stream=True,
+        temperature=0.2,
+        max_tokens=1000,
     )
 
     for part in response:
