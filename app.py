@@ -22,7 +22,7 @@ model = "claude-3-5-sonnet-20241022"
 
 gen_kwargs = {
     "temperature": 0.2,
-    "max_tokens": 500
+    "max_tokens": 1000
 }
 
 SYSTEM_PROMPT_V1 = """\
