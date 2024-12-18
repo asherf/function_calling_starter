@@ -37,6 +37,7 @@ def on_chat_start():
 
 async def llm_call(role: str, message_content: str, message_history: list) -> str:
     message_history.append({"role": role, "content": message_content})
+    print(f"LLM call: {role} - {message_content}")
     response_message = cl.Message(content="")
     await response_message.send()
 
@@ -60,8 +61,21 @@ async def llm_call_json(
     role: str, message_content: str, message_history: list
 ) -> dict | list:
     response_content = await llm_call(role, message_content, message_history)
-    # for now, it is fine to crash if we don't get valid JSON
-    return json.loads(response_content)
+    try:
+        return json.loads(response_content)
+    except json.JSONDecodeError:
+        print("not a JSON response")
+        return {"content": response_content}
+
+
+def call_api(fc: dict) -> dict:
+    function_name = fc.get("name")
+    print(f"calling: {function_name}")
+    if function_name == "get_now_playing":
+        return get_now_playing_movies()
+    elif function_name == "get_showtimes":
+        return get_showtimes()
+    return None
 
 
 @cl.on_message
@@ -70,6 +84,15 @@ async def on_message(message: cl.Message):
     message_history = cl.user_session.get("message_history", [])
     response_json = await llm_call_json("user", message.content, message_history)
     print(f"JSON: '{response_json}'")
+    fc = response_json.get("function_call")
+    if fc:
+        api_response = call_api(fc)
+        if api_response:
+            # message_history.append({"role": "system", "content": api_response})
+            await llm_call("system", api_response, message_history)
+    else:
+        print("not a function call")
+
     cl.user_session.set("message_history", message_history)
 
 

@@ -5,6 +5,11 @@ from typing import Any, Callable, Dict
 import requests
 from serpapi.google_search import GoogleSearch
 
+
+class APIError(Exception):
+    pass
+
+
 # Global cache dictionary
 # Structure: {
 #   'function_name:args': response_data
@@ -29,10 +34,14 @@ def memoize_api_call():
                 print(f"[CACHE DEBUG] ✓ Cache hit! Returning cached result")
                 return _CACHE[cache_key]
 
-            # If no cache, call the function and cache result
             print(f"[CACHE DEBUG] ✗ Cache miss. Calling API and caching result")
-            result = func(*args, **kwargs)
-            _CACHE[cache_key] = result
+            try:
+                result = func(*args, **kwargs)
+            except Exception as e:
+                print("[CACHE DEBUG] Exception occurred. Not caching the result.")
+                raise
+            else:
+                _CACHE[cache_key] = result
             return result
 
         return wrapper
@@ -40,14 +49,21 @@ def memoize_api_call():
     return decorator
 
 
-@memoize_api_call()
 def get_now_playing_movies():
+    try:
+        return _get_now_playing_movies()
+    except APIError as e:
+        return str(e)
+
+
+@memoize_api_call()
+def _get_now_playing_movies():
     url = "https://api.themoviedb.org/3/movie/now_playing?language=en-US&page=1"
     headers = {"Authorization": f"Bearer {os.getenv('TMDB_API_ACCESS_TOKEN')}"}
     response = requests.get(url, headers=headers)
 
-    if response.status_code != 200:
-        return f"Error fetching data: {response.status_code} - {response.reason}"
+    if not response.ok:
+        raise APIError(f"Failed to fetch now playing movies: {response.text}")
 
     data = response.json()
 
