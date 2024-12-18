@@ -17,6 +17,7 @@ import prompts
 
 # Choose one of these model configurations by uncommenting it:
 
+MAX_CALLS = 4
 # OpenAI GPT-4
 OPEN_AI_MODEL = "openai/gpt-4o"
 
@@ -90,15 +91,20 @@ def call_api(fc: dict) -> dict:
 @cl.on_message
 @traceable
 async def on_message(message: cl.Message):
+    remaining_calls = MAX_CALLS
     response_content = await llm_call("user", message.content)
-    fc = extract_json_tag_content(response_content, "function_call")
-    if fc:
+    while remaining_calls > 0:
+        fc = extract_json_tag_content(response_content, "function_call")
+        if not fc:
+            break
         api_response = call_api(fc)
-        print(f"API {fc} - {api_response[:50]}... ({len(api_response)})")
-        if api_response:
-            await llm_call("system", api_response)
-    else:
-        print("not a function call")
+        print(
+            f"API {fc} - {api_response[:50]}... ({len(api_response)}) - remaining calls: {remaining_calls}"
+        )
+        if not api_response:
+            break
+        remaining_calls -= 1
+        response_content = await llm_call("system", api_response)
 
 
 if __name__ == "__main__":
