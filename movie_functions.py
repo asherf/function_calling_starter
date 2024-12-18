@@ -81,7 +81,7 @@ def _get_now_playing_movies():
     return formatted_movies
 
 
-def get_showtimes(title, location):
+def get_showtimes(*, title, location):
     try:
         return _get_showtimes(title, location)
     except Exception as e:

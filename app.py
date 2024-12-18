@@ -53,7 +53,9 @@ async def llm_call(role: str, message_content: str, message_history: list) -> st
         if token := part.choices[0].delta.content or "":
             await response_message.stream_token(token)
     await response_message.update()
-    print(f"LLM response: {response_message.content[:30]}.... ({len(response_message.content)})")
+    print(
+        f"LLM response: {response_message.content[:30]}.... ({len(response_message.content)})"
+    )
     message_history.append({"role": "assistant", "content": response_message.content})
     return response_message.content
 
@@ -75,7 +77,10 @@ def call_api(fc: dict) -> dict:
     if function_name == "get_now_playing":
         return get_now_playing_movies()
     elif function_name == "get_showtimes":
-        return get_showtimes()
+        function_args = fc.get("arguments")
+        st = get_showtimes(**function_args)
+        print(f"SHOW TIMES {function_args}: {st}")
+        return st
     return None
 
 
