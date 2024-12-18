@@ -35,10 +35,12 @@ def on_chat_start():
     cl.user_session.set("message_history", message_history)
 
 
-async def llm_call(role: str, message_content: str) -> str:
+async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
     message_history = cl.user_session.get("message_history", [])
     message_history.append({"role": role, "content": message_content})
-    print(f"LLM call: {role} - {message_content[:30]}... ({len(message_content)}) - history: {len(message_history)}")
+    print(
+        f"LLM call: {role} - {message_content[:30]}... ({len(message_content)}) - history: {len(message_history)}"
+    )
     response_message = cl.Message(content="")
     await response_message.send()
 
@@ -46,7 +48,7 @@ async def llm_call(role: str, message_content: str) -> str:
         model=CURRENT_MODEL,
         messages=message_history,
         stream=True,
-        temperature=0.2,
+        temperature=temperature,
         max_tokens=1000,
     )
 
@@ -62,8 +64,8 @@ async def llm_call(role: str, message_content: str) -> str:
     return response_message.content
 
 
-async def llm_call_json(    role: str, message_content: str) -> dict | list:
-    response_content = await llm_call(role, message_content)
+async def llm_call_json(role: str, message_content: str) -> dict | list:
+    response_content = await llm_call(role, message_content, temperature=0)
     try:
         return json.loads(response_content)
     except json.JSONDecodeError:
@@ -78,20 +80,19 @@ def call_api(fc: dict) -> dict:
         return get_now_playing_movies()
     elif function_name == "get_showtimes":
         function_args = fc.get("arguments")
-        st = get_showtimes(**function_args)
-        print(f"SHOW TIMES {function_args}: {st}")
-        return st
+        return get_showtimes(**function_args)
     return None
 
 
 @cl.on_message
 @traceable
-async def on_message(message: cl.Message):   
+async def on_message(message: cl.Message):
     response_json = await llm_call_json("user", message.content)
     print(f"JSON: '{response_json}'")
     fc = response_json.get("function_call")
     if fc:
         api_response = call_api(fc)
+        print(f"API {fc} - {api_response[:50]}... ({len(api_response)})")
         if api_response:
             await llm_call("system", api_response)
     else:
