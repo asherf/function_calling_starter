@@ -35,9 +35,10 @@ def on_chat_start():
     cl.user_session.set("message_history", message_history)
 
 
-async def llm_call(role: str, message_content: str, message_history: list) -> str:
+async def llm_call(role: str, message_content: str) -> str:
+    message_history = cl.user_session.get("message_history", [])
     message_history.append({"role": role, "content": message_content})
-    print(f"LLM call: {role} - {message_content[:30]}... ({len(message_content)})")
+    print(f"LLM call: {role} - {message_content[:30]}... ({len(message_content)}) - history: {len(message_history)}")
     response_message = cl.Message(content="")
     await response_message.send()
 
@@ -57,13 +58,12 @@ async def llm_call(role: str, message_content: str, message_history: list) -> st
         f"LLM response: {response_message.content[:30]}.... ({len(response_message.content)})"
     )
     message_history.append({"role": "assistant", "content": response_message.content})
+    cl.user_session.set("message_history", message_history)
     return response_message.content
 
 
-async def llm_call_json(
-    role: str, message_content: str, message_history: list
-) -> dict | list:
-    response_content = await llm_call(role, message_content, message_history)
+async def llm_call_json(    role: str, message_content: str) -> dict | list:
+    response_content = await llm_call(role, message_content)
     try:
         return json.loads(response_content)
     except json.JSONDecodeError:
@@ -86,19 +86,16 @@ def call_api(fc: dict) -> dict:
 
 @cl.on_message
 @traceable
-async def on_message(message: cl.Message):
-    message_history = cl.user_session.get("message_history", [])
-    response_json = await llm_call_json("user", message.content, message_history)
+async def on_message(message: cl.Message):   
+    response_json = await llm_call_json("user", message.content)
     print(f"JSON: '{response_json}'")
     fc = response_json.get("function_call")
     if fc:
         api_response = call_api(fc)
         if api_response:
-            await llm_call("system", api_response, message_history)
+            await llm_call("system", api_response)
     else:
         print("not a function call")
-
-    cl.user_session.set("message_history", message_history)
 
 
 if __name__ == "__main__":
