@@ -12,7 +12,7 @@ load_dotenv(override=True)
 from langsmith import traceable
 
 litellm.success_callback = ["langsmith"]
-
+# litellm.set_verbose=True
 import prompts
 
 # Choose one of these model configurations by uncommenting it:
