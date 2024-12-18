@@ -271,7 +271,7 @@ To use any function, generate a function call in JSON format, For example:
     }
 }
 
-When making a function call, output ONLY the thought process and function call as a valid JSON object, then stop
+When making any function call, output ONLY the thought process and function call as a valid JSON object, then stop.
 The response from the function call will be a system message, when seeing that, use that information to respond to the user.
 
 When answering questions, follow these guidelines:
