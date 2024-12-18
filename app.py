@@ -58,12 +58,8 @@ def on_chat_start():
     cl.user_session.set("message_history", message_history)
 
 
-@cl.on_message
-@traceable
-async def on_message(message: cl.Message):
-    message_history = cl.user_session.get("message_history", [])
-    message_history.append({"role": "user", "content": message.content})
-
+async def llm_call(role, message_content, message_history):
+    message_history.append({"role": role, "content": message_content})
     response_message = cl.Message(content="")
     await response_message.send()
 
@@ -74,10 +70,15 @@ async def on_message(message: cl.Message):
     for part in response:
         if token := part.choices[0].delta.content or "":
             await response_message.stream_token(token)
-
     await response_message.update()
-
     message_history.append({"role": "assistant", "content": response_message.content})
+
+
+@cl.on_message
+@traceable
+async def on_message(message: cl.Message):
+    message_history = cl.user_session.get("message_history", [])
+    await llm_call("user", message.content, message_history)
     cl.user_session.set("message_history", message_history)
 
 
