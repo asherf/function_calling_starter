@@ -34,7 +34,7 @@ def memoize_api_call():
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                print("[CACHE DEBUG] Exception occurred. Not caching the result.")
+                print("[CACHE DEBUG] ✗ Exception occurred. Not caching the result.")
                 raise
             else:
                 _CACHE[cache_key] = result
