@@ -273,7 +273,7 @@ To use any function, generate a function call in JSON format, For example:
 
 When making a function call, output ONLY the thought process and function call, \
 then stop. Do not provide any additional information until you receive the function \
-response.
+response. The response from the function call will be a system message use that information to respond to the user.
 
 When answering questions, follow these guidelines:
 

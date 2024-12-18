@@ -89,7 +89,6 @@ async def on_message(message: cl.Message):
     if fc:
         api_response = call_api(fc)
         if api_response:
-            # message_history.append({"role": "system", "content": api_response})
             await llm_call("system", api_response, message_history)
     else:
         print("not a function call")
