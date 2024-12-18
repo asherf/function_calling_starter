@@ -220,7 +220,7 @@ about classic film movements."
 
 4. User: "Who was the first president of the United States?"
 {
-    "thought_process": "This question is not about movies, I am a movies assistant and will only answer questions related to movies.",    
+    "thought_process": "This question is not about movies, I am a movies assistant and will only answer questions related to movies.",
 }
 """
 
