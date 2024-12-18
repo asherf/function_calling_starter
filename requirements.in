@@ -5,3 +5,5 @@ langsmith
 serpapi
 google-search-results
 litellm
+black
+isort

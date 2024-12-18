@@ -1,4 +1,3 @@
-
 SYSTEM_PROMPT_V1 = """\
 You are a helpful movie chatbot that helps people explore movies that are out in \
 theaters. If a user asks for recent information, output a function call and \
