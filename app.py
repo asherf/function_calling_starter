@@ -1,19 +1,21 @@
 import json
+import logging
 import re
 
 import chainlit as cl
 import litellm
 from dotenv import load_dotenv
+from langsmith import traceable
 
+import prompts
 from movie_functions import get_now_playing_movies, get_showtimes
 
+_logger = logging.getLogger(__name__)
 load_dotenv(override=True)
-
-from langsmith import traceable
 
 litellm.success_callback = ["langsmith"]
 # litellm.set_verbose=True
-import prompts
+
 
 # Choose one of these model configurations by uncommenting it:
 
@@ -51,7 +53,7 @@ def on_chat_start():
 async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
     message_history = cl.user_session.get("message_history", [])
     message_history.append({"role": role, "content": message_content})
-    print(
+    _logger.info(
         f"LLM call: {role} - {message_content[:30]}... ({len(message_content)}) - history: {len(message_history)}"
     )
     response_message = cl.Message(content="")
@@ -69,7 +71,7 @@ async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
         if token := part.choices[0].delta.content or "":
             await response_message.stream_token(token)
     await response_message.update()
-    print(
+    _logger.info(
         f"LLM response: {response_message.content[:30]}.... ({len(response_message.content)})"
     )
     message_history.append({"role": "assistant", "content": response_message.content})
@@ -79,7 +81,7 @@ async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
 
 def call_api(fc: dict) -> dict:
     function_name = fc.get("name")
-    print(f"calling: {function_name}")
+    _logger.info(f"calling: {function_name}")
     if function_name == "get_now_playing":
         return get_now_playing_movies()
     elif function_name == "get_showtimes":
@@ -98,7 +100,7 @@ async def on_message(message: cl.Message):
         if not fc:
             break
         api_response = call_api(fc)
-        print(
+        _logger.info(
             f"API {fc} - {api_response[:50]}... ({len(api_response)}) - remaining calls: {remaining_calls}"
         )
         if not api_response:
@@ -108,4 +110,5 @@ async def on_message(message: cl.Message):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     cl.main()

@@ -1,3 +1,4 @@
+import logging
 import os
 from functools import wraps
 from typing import Any, Callable, Dict
@@ -5,6 +6,7 @@ from typing import Any, Callable, Dict
 import requests
 from serpapi.google_search import GoogleSearch
 
+_logger = logging.getLogger(__name__)
 # Global cache dictionary
 # Structure: {
 #   'function_name:args': response_data
@@ -22,18 +24,18 @@ def memoize_api_call():
         def wrapper(*args, **kwargs):
             # Create a cache key from function name and arguments
             cache_key = f"{func.__name__}:{str(args)}:{str(kwargs)}"
-            print(f"\n[CACHE DEBUG] Looking for key: {cache_key}")
+            _logger.debug(f"Looking for key: {cache_key}")
 
             # Return cached result if it exists
             if cache_key in _CACHE:
-                print(f"[CACHE DEBUG] ✓ Cache hit! Returning cached result")
+                _logger.debug("✓ Cache hit! Returning cached result")
                 return _CACHE[cache_key]
 
-            print(f"[CACHE DEBUG] ✗ Cache miss. Calling API and caching result")
+            _logger.debug("✗ Cache miss. Calling API and caching result")
             try:
                 result = func(*args, **kwargs)
             except Exception as e:
-                print("[CACHE DEBUG] ✗ Exception occurred. Not caching the result.")
+                _logger.debug("✗ Exception occurred. Not caching the result.")
                 raise
             else:
                 _CACHE[cache_key] = result
@@ -184,7 +186,7 @@ def clear_cache_for_function(function_name: str):
 
 def print_cache_status():
     """Print the current contents of the cache"""
-    print("\n[CACHE STATUS]")
-    print(f"Total cached items: {len(_CACHE)}")
+    _logger.info("[CACHE STATUS]")
+    _logger.info(f"Total cached items: {len(_CACHE)}")
     for key in _CACHE:
-        print(f"- {key}")
+        _logger.info(f"- {key}")
