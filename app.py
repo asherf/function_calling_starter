@@ -17,9 +17,9 @@ litellm.success_callback = ["langsmith"]
 # litellm.set_verbose=True
 
 
+MAX_FUNCTION_CALLS_PER_MESSAGE = 4
 # Choose one of these model configurations by uncommenting it:
 
-MAX_CALLS = 4
 # OpenAI GPT-4
 OPEN_AI_MODEL = "openai/gpt-4o"
 
@@ -96,7 +96,7 @@ def call_api(fc: dict) -> dict:
 @cl.on_message
 @traceable
 async def on_message(message: cl.Message):
-    remaining_calls = MAX_CALLS
+    remaining_calls = MAX_FUNCTION_CALLS_PER_MESSAGE
     response_content = await llm_call("user", message.content)
     while remaining_calls > 0:
         fc = extract_json_tag_content(response_content, "function_call")
