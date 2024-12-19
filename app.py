@@ -48,7 +48,7 @@ def extract_json_tag_content(text: str, tag_name: str) -> dict | list | None:
 @traceable
 @cl.on_chat_start
 def on_chat_start():
-    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V5}]
+    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V6}]
     cl.user_session.set("message_history", message_history)
 
 
