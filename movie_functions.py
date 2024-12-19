@@ -46,7 +46,7 @@ def memoize_api_call():
     return decorator
 
 
-def get_now_playing_movies():
+def get_now_playing():
     try:
         return _get_now_playing_movies()
     except IOError as e:
@@ -128,7 +128,11 @@ def _get_showtimes(title, location):
 
 
 def buy_ticket(theater, movie, showtime):
-    return f"Ticket purchased for {movie} at {theater} for {showtime}."
+    return f"Ticket purchased for {movie} at {theater} at {showtime}."
+
+
+def confirm_ticket_purchase(theater, movie, showtime):
+    return f"Confirmed that you want to purchase a ticket for {movie} at {theater} at {showtime}."
 
 
 def get_reviews(movie_id):

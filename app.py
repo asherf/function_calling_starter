@@ -1,14 +1,15 @@
 import json
 import logging
 import re
+from pathlib import Path
 
 import chainlit as cl
 import litellm
 from dotenv import load_dotenv
 from langsmith import traceable
 
+import movie_functions
 import prompts
-from movie_functions import get_now_playing_movies, get_showtimes
 
 _logger = logging.getLogger(__name__)
 load_dotenv(override=True)
@@ -34,6 +35,25 @@ CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
 SUPPORT_SYSTEM_MESSAGE = CURRENT_MODEL != CLAUDE_MODEL
 
 
+def get_system_prompt():
+    # We don't really need is as JSON, but this is a way to validate the JSON is valid
+    function_defs = json.loads(Path("./functions_defs.json.json").read_text())
+    # validate functions, fail fast if there is an issue
+    missing = []
+    for function_name in function_defs.keys():
+        if not getattr(movie_functions, function_name, None):
+            missing.append(function_name)
+    if missing:
+        raise ValueError(
+            f"Missing functions in 'movie_functions' module : {', '.join(missing)}"
+        )
+    # temporary, testing w/o confirmation first
+    del function_defs["confirm_ticket_purchase"]
+    return prompts.SYSTEM_PROMPT_V7.format(
+        function_defs=json.dumps(function_defs, indent=2)
+    )
+
+
 def extract_tag_content(text: str, tag_name: str) -> str | None:
     pattern = f"<{tag_name}>(.*?)</{tag_name}>"
     match = re.search(pattern, text, re.DOTALL)
@@ -48,7 +68,7 @@ def extract_json_tag_content(text: str, tag_name: str) -> dict | list | None:
 @traceable
 @cl.on_chat_start
 def on_chat_start():
-    message_history = [{"role": "system", "content": prompts.SYSTEM_PROMPT_V6}]
+    message_history = [{"role": "system", "content": get_system_prompt()}]
     cl.user_session.set("message_history", message_history)
 
 
@@ -84,13 +104,12 @@ async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
 
 def call_api(fc: dict) -> dict:
     function_name = fc.get("name")
-    _logger.info(f"calling: {function_name}")
-    if function_name == "get_now_playing":
-        return get_now_playing_movies()
-    elif function_name == "get_showtimes":
-        function_args = fc.get("arguments")
-        return get_showtimes(**function_args)
-    return None
+    function_args = fc.get("arguments")
+    _logger.info(f"calling: {function_name} w/ {function_args}")
+    func = getattr(movie_functions, function_name, None)
+    if not func:
+        raise ValueError(f"Function {function_name} not found")
+    return func(**function_args)
 
 
 @cl.on_message

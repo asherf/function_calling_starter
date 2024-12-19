@@ -1,0 +1,80 @@
+{
+    "get_now_playing": {
+        "description": "Fetches a list of movies currently playing in theaters",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
+    "get_showtimes": {
+        "description": "Fetches showtimes for a specific movie in a given location",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "The title of the movie to get showtimes for"
+                },
+                "location": {
+                    "type": "string",
+                    "description": "The location to get showtimes for"
+                }
+            },
+            "required": [
+                "title",
+                "location"
+            ]
+        }
+    },
+    "confirm_ticket_purchase": {
+        "description": "Confirms with the user that they want to purchase a ticket for a specific movie at a given theater and showtime",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "theater": {
+                    "type": "string",
+                    "description": "The name of the theater to buy a ticket from"
+                },
+                "movie": {
+                    "type": "string",
+                    "description": "The name of the movie to buy a ticket for"
+                },
+                "showtime": {
+                    "type": "string",
+                    "description": "The showtime for the movie"
+                }
+            },
+            "required": [
+                "theater",
+                "movie",
+                "showtime"
+            ]
+        }
+    },
+    "buy_ticket": {
+        "description": "Buys a movie ticket for a specific movie at a given theater and showtime",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "theater": {
+                    "type": "string",
+                    "description": "The name of the theater to buy a ticket from"
+                },
+                "movie": {
+                    "type": "string",
+                    "description": "The name of the movie to buy a ticket for"
+                },
+                "showtime": {
+                    "type": "string",
+                    "description": "The showtime for the movie"
+                }
+            },
+            "required": [
+                "theater",
+                "movie",
+                "showtime"
+            ]
+        }
+    }
+}
