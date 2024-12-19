@@ -55,9 +55,6 @@ def get_system_prompt():
         raise ValueError(
             f"Missing functions in 'movie_functions' module : {', '.join(missing)}"
         )
-    # temporary, testing w/o confirmation first
-    del functions_defs["confirm_ticket_purchase"]
-
     return prompts.SYSTEM_PROMPT_V7.format(
         functions_defs=json.dumps(functions_defs, indent=2),
         example_function_call=json.dumps(example_function_call, indent=2),
