@@ -29,7 +29,9 @@ CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 # Fireworks Qwen
 FIREWORKS_MODEL = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct"
 
-CURRENT_MODEL = OPEN_AI_MODEL  # Change this to the model you want to use
+CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
+# see: https://docs.anthropic.com/en/api/messages#body-messages
+SUPPORT_SYSTEM_MESSAGE = CURRENT_MODEL != CLAUDE_MODEL
 
 
 def extract_tag_content(text: str, tag_name: str) -> str | None:
@@ -61,6 +63,7 @@ async def llm_call(role: str, message_content: str, temperature=0.2) -> str:
 
     response = litellm.completion(
         model=CURRENT_MODEL,
+        supports_system_message=SUPPORT_SYSTEM_MESSAGE,
         messages=message_history,
         stream=True,
         temperature=temperature,
@@ -106,7 +109,9 @@ async def on_message(message: cl.Message):
         if not api_response:
             break
         remaining_calls -= 1
-        response_content = await llm_call("system", api_response)
+        response_content = await llm_call(
+            "system", f"<function_response>{api_response}</function_response>"
+        )
 
 
 if __name__ == "__main__":
