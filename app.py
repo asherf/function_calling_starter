@@ -36,11 +36,19 @@ SUPPORT_SYSTEM_MESSAGE = CURRENT_MODEL != CLAUDE_MODEL
 
 
 def get_system_prompt():
+    example_function_call = {
+        "name": "get_now_playing",
+        "arguments": {},
+    }
+    example_function_call_get_showtimes = {
+        "name": "get_showtimes",
+        "arguments": {"title": "The Batman", "location": "Los Angeles"},
+    }
     # We don't really need is as JSON, but this is a way to validate the JSON is valid
-    function_defs = json.loads(Path("./functions_defs.json.json").read_text())
+    functions_defs = json.loads(Path("./functions_defs.json.json").read_text())
     # validate functions, fail fast if there is an issue
     missing = []
-    for function_name in function_defs.keys():
+    for function_name in functions_defs.keys():
         if not getattr(movie_functions, function_name, None):
             missing.append(function_name)
     if missing:
@@ -48,9 +56,14 @@ def get_system_prompt():
             f"Missing functions in 'movie_functions' module : {', '.join(missing)}"
         )
     # temporary, testing w/o confirmation first
-    del function_defs["confirm_ticket_purchase"]
+    del functions_defs["confirm_ticket_purchase"]
+
     return prompts.SYSTEM_PROMPT_V7.format(
-        function_defs=json.dumps(function_defs, indent=2)
+        functions_defs=json.dumps(functions_defs, indent=2),
+        example_function_call=json.dumps(example_function_call, indent=2),
+        example_function_call_get_showtimes=json.dumps(
+            example_function_call_get_showtimes, indent=2
+        ),
     )
 
 

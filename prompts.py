@@ -696,16 +696,13 @@ helpful information to users interested in cinema.
 You have access to the following functions:
 
 <available_functions>
-{function_defs}
+{functions_defs}
 </available_functions>
 
 To use any function, generate a function call in JSON format, wrapped in \
 <function_call> tags. For example:
 <function_call>
-{
-  "name": "get_now_playing",
-  "arguments": {}
-}
+{example_function_call}
 </function_call>
 
 When making a function call:
@@ -719,10 +716,7 @@ When making a function call:
          First, I need to get the list of currently playing movies before I can select one for showtimes.
       </thought_process>
       <function_call>
-         {
-            "name": "get_now_playing",
-            "arguments": {}
-         }
+       {example_function_call}
       </function_call>
 [STOP HERE AND WAIT FOR RESPONSE]
 
@@ -773,10 +767,7 @@ real-time information using the get_now_playing function.
 </thought_process>
 
 <function_call>
-{
-  "name": "get_now_playing",
-  "arguments": {}
-}
+{example_function_call}
 </function_call>
 
 2. User: "Can you tell me about the French New Wave? I'm interested in learning \
@@ -822,13 +813,7 @@ I need to fetch this information using the get_showtimes function
 </thought_process>
 
 <function_call>
-   {
-        "name": "get_showtimes",
-        "arguments": {
-            "title": "The Batman",
-            "location": "Los Angeles"
-        }
-    }
+{example_function_call_get_showtimes}   
 </function_call>
 
 """
