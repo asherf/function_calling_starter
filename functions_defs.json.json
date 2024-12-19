@@ -1,4 +1,13 @@
 {
+
+    "get_current_date": {
+        "description": "Fetches the current date",
+        "parameters": {
+            "type": "object",
+            "properties": {},
+            "required": []
+        }
+    },
     "get_now_playing": {
         "description": "Fetches a list of movies currently playing in theaters",
         "parameters": {

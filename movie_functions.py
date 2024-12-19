@@ -1,5 +1,6 @@
 import logging
 import os
+import datetime
 from functools import wraps
 from typing import Any, Callable, Dict
 
@@ -44,6 +45,10 @@ def memoize_api_call():
         return wrapper
 
     return decorator
+
+
+def get_current_date():
+    return datetime.date.today().isoformat()
 
 
 def get_now_playing():
