@@ -29,7 +29,7 @@ CLAUDE_MODEL = "claude-3-5-sonnet-20241022"
 # Fireworks Qwen
 FIREWORKS_MODEL = "fireworks_ai/accounts/fireworks/models/qwen2p5-coder-32b-instruct"
 
-CURRENT_MODEL = CLAUDE_MODEL  # Change this to the model you want to use
+CURRENT_MODEL = OPEN_AI_MODEL  # Change this to the model you want to use
 
 
 def extract_tag_content(text: str, tag_name: str) -> str | None:
