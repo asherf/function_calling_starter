@@ -55,7 +55,7 @@ def get_system_prompt():
         raise ValueError(
             f"Missing functions in 'movie_functions' module : {', '.join(missing)}"
         )
-    return prompts.SYSTEM_PROMPT_V7.format(
+    return prompts.SYSTEM_PROMPT_V8.format(
         functions_defs=json.dumps(functions_defs, indent=2),
         example_function_call=json.dumps(example_function_call, indent=2),
         example_function_call_get_showtimes=json.dumps(
@@ -119,7 +119,8 @@ def call_api(fc: dict) -> dict:
     func = getattr(movie_functions, function_name, None)
     if not func:
         raise ValueError(f"Function {function_name} not found")
-    return func(**function_args)
+    resp = func(**function_args)
+    return "<function_response>{resp}</function_response>"
 
 
 @cl.on_message
@@ -137,10 +138,10 @@ async def on_message(message: cl.Message):
         )
         if not api_response:
             break
+        # if api_response and fc["name"] == "buy_ticket":
+        #     api_response = f"{api_response}\n\nask the user confirm the purchase and if it does confirm, call the function 'confirm_ticket_purchase' with the same arguments"
         remaining_calls -= 1
-        response_content = await llm_call(
-            "system", f"<function_response>{api_response}</function_response>"
-        )
+        response_content = await llm_call("system", api_response)
 
 
 if __name__ == "__main__":
